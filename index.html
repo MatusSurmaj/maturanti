@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Verejné obstarávanie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Literata:opsz,wght@7..72,400;7..72,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  --bg:#F1F3F6; --ink:#17233A; --muted:#55627A; --card:#FFFFFF; --line:#CBD3E0;
+  --stamp:#1E4DB7; --amber:#F6C544; --amber-ink:#17233A; --good:#1F7A4D; --bad:#B4372F;
+  --head:"Bricolage Grotesque","Segoe UI",Helvetica,Arial,sans-serif;
+  --body:"Literata",Georgia,"Times New Roman",serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1626; --ink:#E8ECF4; --muted:#9AA6BE; --card:#182239; --line:#2C3956;
+    --stamp:#86A9FF; --good:#5CC48F; --bad:#FF8B80;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1626; --ink:#E8ECF4; --muted:#9AA6BE; --card:#182239; --line:#2C3956;
+  --stamp:#86A9FF; --good:#5CC48F; --bad:#FF8B80;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);overflow:hidden}
+h1,h2,h3{font-family:var(--head);margin:0;line-height:1.08;letter-spacing:-.015em}
+p{margin:0}
+
+.deck{position:relative;height:100%}
+.slide{
+  position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+  padding:clamp(20px,4.5vh,56px) clamp(20px,6vw,96px) calc(clamp(64px,10vh,84px) + env(safe-area-inset-bottom,0px));
+  overflow-y:auto;overflow-x:hidden;
+}
+.slide.active{display:flex}
+.inner{width:100%;max-width:1120px;margin:0 auto}
+.tag{font-family:var(--head);font-weight:700;font-size:clamp(.85rem,1.6vh + .3vw,1.05rem);color:var(--stamp);margin-bottom:clamp(8px,1.8vh,16px);display:flex;align-items:center;gap:10px}
+.tag::before{content:"";width:28px;height:3px;background:var(--stamp);border-radius:2px}
+h2{font-size:clamp(1.7rem,4.6vh + 1.6vw,3.3rem);font-weight:800;margin-bottom:clamp(14px,3vh,30px);max-width:22ch}
+h2.wide{max-width:none}
+h3{font-size:clamp(1.05rem,2.4vh + .5vw,1.5rem);font-weight:700;margin-bottom:6px}
+.lead{font-size:clamp(1.05rem,2.6vh + .5vw,1.6rem);line-height:1.5;max-width:44ch}
+.txt{font-size:clamp(.95rem,2.1vh + .35vw,1.2rem);line-height:1.5;color:var(--ink)}
+.muted{color:var(--muted)}
+mark{background:var(--amber);color:var(--amber-ink);padding:0 .2em;border-radius:3px}
+b,strong{font-weight:600}
+
+/* title */
+.title-slide .inner{display:grid;grid-template-columns:1.4fr 1fr;gap:clamp(16px,4vw,64px);align-items:center}
+.title-slide h1{font-size:clamp(2.4rem,8vh + 3.4vw,6rem);font-weight:800;letter-spacing:-.03em}
+.title-slide .sub{margin-top:clamp(12px,2.5vh,24px);font-size:clamp(1rem,2.4vh + .4vw,1.4rem);color:var(--muted);max-width:32ch;line-height:1.45}
+.stamp{justify-self:center;width:min(100%,300px);aspect-ratio:1;border:5px double var(--stamp);border-radius:50%;color:var(--stamp);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;transform:rotate(-9deg);font-family:var(--head);padding:14px}
+.stamp .s1{font-size:clamp(.8rem,1.6vh + .4vw,1.05rem);font-weight:700}
+.stamp .s2{font-size:clamp(1.5rem,4vh + 1vw,2.6rem);font-weight:800;line-height:1;margin:6px 0}
+.stamp .s3{font-size:clamp(.8rem,1.6vh + .4vw,1.05rem);font-weight:700}
+@media (max-width:760px){.title-slide .inner{grid-template-columns:1fr}.stamp{width:170px;justify-self:start}}
+
+/* lists */
+ul.plain{list-style:none;margin:0;padding:0;display:grid;gap:clamp(8px,1.6vh,14px)}
+ul.plain li{font-size:clamp(.95rem,2.1vh + .35vw,1.2rem);line-height:1.45;padding-left:22px;position:relative}
+ul.plain li::before{content:"";position:absolute;left:0;top:.6em;width:9px;height:9px;background:var(--stamp);border-radius:2px}
+.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,3vw,44px)}
+.cols-3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(12px,2vw,28px)}
+@media (max-width:760px){.cols-2,.cols-3{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:clamp(14px,2.4vh,26px)}
+.card.flat{border-radius:4px}
+.card.left-bar{border-left:6px solid var(--stamp);border-radius:4px 12px 12px 4px}
+.card.good{border-left:6px solid var(--good);border-radius:4px 12px 12px 4px}
+.card.bad{border-left:6px solid var(--bad);border-radius:4px 12px 12px 4px}
+.card p{font-size:clamp(.9rem,1.9vh + .3vw,1.1rem);line-height:1.5;color:var(--muted)}
+.card .big{font-family:var(--head);font-weight:800;font-size:clamp(1.6rem,4.2vh + .8vw,2.8rem);line-height:1;color:var(--ink);margin:6px 0 8px}
+.q{font-family:var(--head);font-weight:700;font-size:clamp(1.3rem,3.6vh + 1vw,2.4rem);line-height:1.2;max-width:26ch}
+.note{margin-top:clamp(12px,2.4vh,24px);padding:12px 16px;border-radius:8px;background:color-mix(in srgb,var(--amber) 28%,transparent);border:1px solid var(--amber);font-size:clamp(.9rem,1.9vh + .3vw,1.1rem);line-height:1.45}
+
+/* bars */
+.bars{display:grid;gap:12px;margin-top:8px}
+.bar{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:12px;font-family:var(--head);font-weight:700}
+.bar i{display:block;height:clamp(34px,6vh,52px);background:var(--stamp);border-radius:4px;color:#fff;font-style:normal;padding:0 14px;display:flex;align-items:center;justify-content:flex-end;font-size:clamp(.9rem,2vh + .3vw,1.15rem)}
+.bar.win i{background:var(--good);color:#fff}
+@media (max-width:520px){.bar{grid-template-columns:78px 1fr}}
+
+/* steps */
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(8px,1.4vw,16px);counter-reset:s}
+.steps li{counter-increment:s;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:clamp(12px,2vh,20px);font-size:clamp(.88rem,1.8vh + .3vw,1.08rem);line-height:1.4}
+.steps li::before{content:counter(s);display:flex;width:32px;height:32px;border-radius:50%;background:var(--stamp);color:#fff;font-family:var(--head);font-weight:800;align-items:center;justify-content:center;margin-bottom:10px}
+.steps li b{display:block;font-family:var(--head);font-weight:700;font-size:1.08em;margin-bottom:3px}
+@media (max-width:900px){.steps{grid-template-columns:repeat(2,1fr)}}
+.flow{font-family:var(--head);font-weight:700;color:var(--stamp);font-size:clamp(.8rem,1.7vh + .3vw,1.05rem);line-height:1.6;margin-bottom:clamp(12px,2.4vh,22px)}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse;font-size:clamp(.9rem,1.9vh + .3vw,1.1rem)}
+.tbl th,.tbl td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.4}
+.tbl th{font-family:var(--head);font-weight:700;background:var(--card)}
+.scroll-x{overflow-x:auto}
+
+/* quiz */
+ol.quiz{margin:0;padding-left:1.6em;display:grid;gap:clamp(10px,2vh,18px)}
+ol.quiz li{font-size:clamp(1rem,2.2vh + .4vw,1.3rem);line-height:1.45;padding-left:6px}
+ol.quiz li::marker{font-family:var(--head);font-weight:800;color:var(--stamp)}
+
+/* cheat sheet */
+.cheat{display:grid;gap:0;border:2px solid var(--ink);border-radius:6px;overflow:hidden;background:var(--card)}
+.cheat div{display:grid;grid-template-columns:clamp(110px,18vw,190px) 1fr;border-bottom:1px solid var(--line)}
+.cheat div:last-child{border-bottom:0}
+.cheat dt,.cheat dd{margin:0;padding:clamp(8px,1.6vh,14px) 16px;font-size:clamp(.9rem,1.9vh + .3vw,1.15rem);line-height:1.4}
+.cheat dt{font-family:var(--head);font-weight:800;background:var(--ink);color:var(--bg)}
+
+/* nav */
+.bar-nav{position:fixed;left:0;right:0;bottom:0;padding:10px clamp(16px,4vw,48px) calc(10px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:14px;background:var(--bg);border-top:1px solid var(--line);z-index:5}
+.progress{flex:1;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.progress span{display:block;height:100%;width:0;background:var(--stamp);transition:width .25s}
+.count{font-family:var(--head);font-weight:700;font-size:.95rem;color:var(--muted);min-width:64px;text-align:center}
+.nb{font-family:var(--head);font-weight:700;font-size:1rem;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;min-width:44px;height:44px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.nb:hover{border-color:var(--stamp)}
+.nb:focus-visible,.slide:focus-visible{outline:3px solid var(--stamp);outline-offset:2px}
+.nb[disabled]{opacity:.4;cursor:default}
+@media (prefers-reduced-motion:reduce){.progress span{transition:none}}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 1 -->
+<section class="slide title-slide" aria-label="Úvod">
+  <div class="inner">
+    <div>
+      <h1>Verejné obstarávanie</h1>
+    </div>
+    <div class="stamp" aria-hidden="true">
+      <span class="s1">Zákon č.</span>
+      <span class="s2">343/2015</span>
+      <span class="s3">Z. z.</span>
+    </div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Ciele</div>
+    <h2>Čo budete vedieť po dvoch hodinách</h2>
+    <div class="cols-2">
+      <ul class="plain">
+        <li>Vysvetliť, čo je verejné obstarávanie a prečo je dôležité pre štát a hospodárstvo</li>
+        <li>Rozlíšiť verejného obstarávateľa, záujemcu, uchádzača a hospodársky subjekt</li>
+        <li>Rozlíšiť tovary, služby a stavebné práce</li>
+        <li>Vysvetliť princípy: transparentnosť, rovnaké zaobchádzanie, nediskriminácia, proporcionalita, hospodárnosť</li>
+        <li>Vysvetliť PHZ, finančné limity a prečo sa udáva bez DPH</li>
+      </ul>
+      <ul class="plain">
+        <li>Vysvetliť umelé rozdeľovanie zákaziek (vecná, časová, miestna súvislosť)</li>
+        <li>Opísať postupy: verejná súťaž, užšia súťaž, priame rokovacie konanie, EKS</li>
+        <li>Objasniť zelené a sociálne verejné obstarávanie</li>
+        <li>Vysvetliť konflikt záujmov, námietky na ÚVO a riziká netransparentného postupu</li>
+        <li>Použiť poznatky v praktických stavebných a manažérskych situáciách</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Základné pojmy a princípy</div>
+    <h2>Nákup počítačov pre školu</h2>
+    <p class="q">Škola potrebuje 30 nových počítačov. Môže riaditeľ zavolať známemu, ktorý ich predáva, a kúpiť ich od neho?</p>
+    <div class="cols-2" style="margin-top:clamp(16px,3vh,32px)">
+      <div class="card left-bar"><h3>Čo ak nákup stojí 30 000 €?</h3><p>Navrhnite, ako by mala škola postupovať.</p></div>
+      <div class="card left-bar"><h3>Čo ak stojí 300 000 €?</h3><p>Prečo by mal byť postup iný ako pri súkromnej osobe?</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Základné pojmy</div>
+    <h2>Čo je verejné obstarávanie?</h2>
+    <p class="lead">Pravidlami upravený proces podľa <mark>zákona č. 343/2015 Z. z.</mark>, ktorým verejní obstarávatelia nakupujú tovary, služby alebo stavebné práce od hospodárskych subjektov.</p>
+    <div class="note"><b>Jednoducho:</b> verejný sektor vyberá dodávateľa a nakupuje za verejné peniaze podľa stanovených pravidiel. Nejde len o výber najlacnejšej firmy, ale o celý proces od prípravy potreby po uzatvorenie a plnenie zmluvy.</div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Základné pojmy</div>
+    <h2>Prečo verejné obstarávanie existuje</h2>
+    <p class="txt" style="max-width:62ch;margin-bottom:14px">Verejný sektor hospodári s peniazmi z daní, poplatkov, odvodov, dotácií a európskych fondov. Musí byť možné kontrolovať, ako sa používajú.</p>
+    <div class="card">
+      <h3>Mesto má na rekonštrukciu školy 500 000 €</h3>
+      <div class="bars" role="img" aria-label="Tri ponuky: 500 000, 470 000 a 450 000 eur">
+        <div class="bar"><span>Ponuka 1</span><i style="width:100%">500 000 €</i></div>
+        <div class="bar"><span>Ponuka 2</span><i style="width:94%">470 000 €</i></div>
+        <div class="bar win"><span>Ponuka 3</span><i style="width:90%">450 000 €</i></div>
+      </div>
+      <p style="margin-top:12px">Rozdiel 50 000 € môže znamenať ďalšie vybavenie školy alebo inú verejnú potrebu.</p>
+    </div>
+    <div class="note"><b>Dôležité:</b> cieľom nie je vždy najnižšia cena, ale hospodárny a primeraný výsledok podľa vopred určených pravidiel.</div>
+  </div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Základné pojmy</div>
+    <h2>Kto vystupuje vo verejnom obstarávaní</h2>
+    <div class="cols-2">
+      <div class="card left-bar">
+        <h3>Verejný obstarávateľ</h3>
+        <p>Subjekt, ktorý zákazku zadáva: ministerstvo, obec, samosprávny kraj, škola, nemocnica, polícia.</p>
+      </div>
+      <div class="card left-bar">
+        <h3>Hospodársky subjekt</h3>
+        <p>Fyzická alebo právnická osoba (stavebná firma, IT firma, poskytovateľ služieb), ktorá ponúka tovary, služby alebo stavebné práce.</p>
+        <ul class="plain" style="margin-top:12px">
+          <li><b>Záujemca</b> si vyžiadal súťažné podklady alebo prejavil záujem</li>
+          <li><b>Uchádzač</b> už predložil konkrétnu ponuku</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note">Obstarávateľ nakupuje. Dodávateľ ponúka a plní zákazku.</div>
+  </div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Základné pojmy</div>
+    <h2>Čo sa môže obstarávať</h2>
+    <div class="cols-3">
+      <div class="card"><h3>Tovary</h3><p>Počítače, stavebný materiál, vozidlá, učebnice, kancelárske potreby.</p></div>
+      <div class="card"><h3>Služby</h3><p>Upratovanie, doprava, IT podpora, právne, projektové alebo inžinierske služby.</p></div>
+      <div class="card"><h3>Stavebné práce</h3><p>Výstavba, rekonštrukcia, oprava strechy, zateplenie, stavba ciest a mostov.</p></div>
+    </div>
+    <div class="note"><b>Otázka:</b> škola objedná projekt rekonštrukcie budovy. Je to tovar, služba alebo stavebné práce?<br>Odpoveď: <b>služba</b> (vypracovanie projektovej dokumentácie).</div>
+  </div>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Základné princípy</div>
+    <h2>Päť princípov verejného obstarávania</h2>
+    <div class="cols-2">
+      <div style="display:grid;gap:12px">
+        <div class="card flat left-bar"><h3>Transparentnosť</h3><p>Postup je jasný, dohľadateľný, zverejnený a kontrolovateľný.</p></div>
+        <div class="card flat left-bar"><h3>Rovné zaobchádzanie</h3><p>Všetci uchádzači majú rovnaké podmienky a informácie v rovnakom čase.</p></div>
+        <div class="card flat left-bar"><h3>Nediskriminácia</h3><p>Podmienky bezdôvodne nezvýhodňujú ani nevylučujú subjekt (napr. „firma musí sídliť v našom meste“).</p></div>
+      </div>
+      <div style="display:grid;gap:12px;align-content:start">
+        <div class="card flat left-bar"><h3>Proporcionalita</h3><p>Požiadavky zodpovedajú náročnosti a rozsahu zákazky.</p></div>
+        <div class="card flat left-bar"><h3>Hospodárnosť a efektívnosť</h3><p>Verejné prostriedky sa využívajú účelne a bez plytvania (hodnota za peniaze).</p></div>
+        <div class="note" style="margin-top:0">Oprava malej kancelárie a požiadavka na firmu, ktorá postavila 50 diaľnic, je neprimeraná a diskriminačná.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Hodnotenie ponúk</div>
+    <h2>Najlacnejšia ponuka nie je vždy najvýhodnejšia</h2>
+    <div class="cols-2">
+      <div class="card"><h3>Firma A</h3><div class="big">100 000 €</div><p>Záruka 2 roky, základné materiály.</p></div>
+      <div class="card good"><h3>Firma B</h3><div class="big">105 000 €</div><p>Záruka 8 rokov, ekologické izolačné materiály, nižšia energetická náročnosť budovy.</p></div>
+    </div>
+    <p class="txt" style="margin-top:14px"><b>Ktorá je lacnejšia? Ktorá je výhodnejšia z dlhodobého hľadiska?</b></p>
+    <div class="note"><b>MEAT</b> (Most Economically Advantageous Tender) je najlepšia hodnota za peniaze. Kritériá môžu zahŕňať cenu, kvalitu, lehotu výstavby, náklady na prevádzku a údržbu počas životnosti stavby a záručný servis.</div>
+  </div>
+</section>
+
+<!-- 10 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Hodnotenie ponúk</div>
+    <h2>Zelené a sociálne obstarávanie</h2>
+    <div class="cols-2">
+      <div class="card good">
+        <h3>Zelené verejné obstarávanie (GPP)</h3>
+        <p>Zohľadňuje ekologické dopady: podiel recyklovaných stavebných materiálov, uhlíková stopa, energetická trieda.</p>
+      </div>
+      <div class="card left-bar">
+        <h3>Sociálne verejné obstarávanie</h3>
+        <p>Podpora zamestnávania znevýhodnených osôb alebo dlhodobo nezamestnaných pri realizácii stavebných prác.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Predpokladaná hodnota zákazky</div>
+    <h2>PHZ: odhad hodnoty vždy bez DPH</h2>
+    <p class="lead">Obstarávateľ ju určí pred vyhlásením obstarávania na základe prieskumu trhu. Podľa nej sa určí správny postup a finančné limity.</p>
+    <div class="card left-bar" style="margin-top:clamp(14px,3vh,28px)">
+      <h3>Príklad: škola potrebuje 100 počítačov</h3>
+      <div class="big">100 × 800 € = 80 000 € bez DPH</div>
+      <p>DPH sa k vysúťaženej sume pripočíta až úspešnému uchádzačovi podľa jeho daňového statusu.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 12 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Predpokladaná hodnota zákazky</div>
+    <h2>Prečo porovnávame ceny bez DPH</h2>
+    <div class="cols-2">
+      <div class="card">
+        <h3>Janko, živnostník (neplatca DPH)</h3>
+        <p>Odhad na farby, štetce a prácu: 10 000 €. Ponuka: <b>10 000 €</b> (s DPH aj bez).</p>
+      </div>
+      <div class="card">
+        <h3>STAV s.r.o. (platca DPH)</h3>
+        <p>Rovnaký odhad: 10 000 € bez DPH. Pripočíta 20 % DPH (2 000 €). Ponuka pre zákazníka: <b>12 000 € s DPH</b>.</p>
+      </div>
+    </div>
+    <div class="cols-2" style="margin-top:14px">
+      <div class="card bad"><h3>S DPH by vyhral Janko</h3><p>10 000 € proti 12 000 €. Nespravodlivé: obe firmy ocenili prácu rovnako.</p></div>
+      <div class="card good"><h3>Bez DPH sú ponuky rovné</h3><p>10 000 € proti 10 000 €. Firma STAV odvedie 2 000 € do štátneho rozpočtu, nie do vlastného vrecka.</p></div>
+    </div>
+    <div class="note">Ďalšie dôvody: sadzby DPH sa menia a líšia podľa tovaru, a pre štát je čistou hodnotou tovaru suma bez DPH.</div>
+  </div>
+</section>
+
+<!-- 13 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Zákaz umelého rozdeľovania</div>
+    <h2>Zákazku nesmieme rozdeliť len preto, aby sme obišli pravidlá</h2>
+    <p class="txt" style="max-width:66ch;margin-bottom:14px">Reálna potreba za 80 000 € sa nesmie rozdeliť napríklad na 10 nákupov po 8 000 € kvôli miernejšiemu postupu alebo vynechaniu zverejnenia vo vestníku.</p>
+    <div class="cols-3">
+      <div class="card left-bar"><h3>Vecná súvislosť</h3><p>Tovary alebo práce spolu logicky súvisia. Okná, podlahy a maľovanie jednej budovy tvoria jeden projekt.</p></div>
+      <div class="card left-bar"><h3>Časová súvislosť</h3><p>Zákazky sa plánujú alebo realizujú v rovnakom období, napr. v jednom rozpočtovom roku.</p></div>
+      <div class="card left-bar"><h3>Miestna súvislosť</h3><p>Plnenie sa týka toho istého objektu, lokality alebo územia.</p></div>
+    </div>
+    <div class="note"><b>Dôsledky:</b> vysoké pokuty od ÚVO, krátenie eurofondov alebo anulovanie zmluvy.</div>
+  </div>
+</section>
+
+<!-- 14 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Základný priebeh</div>
+    <h2 class="wide">Od potreby po kontrolu</h2>
+    <div class="flow">POTREBA → PRÍPRAVA A PHZ → VYHLÁSENIE → PONUKY → VYHODNOTENIE → VÝBER → ZMLUVA (CRZ) → PLNENIE A KONTROLA</div>
+    <ol class="steps">
+      <li><b>Potreba</b>Vznikne reálna potreba verejného sektora.</li>
+      <li><b>Príprava</b>Určí sa predmet, technické špecifikácie a PHZ bez DPH.</li>
+      <li><b>Vyhlásenie</b>Zvolí sa zákonný postup a zverejnia sa súťažné podklady.</li>
+      <li><b>Ponuky</b>Hospodárske subjekty predložia ponuky a doklady.</li>
+      <li><b>Vyhodnotenie</b>Podmienky účasti a kritériá hodnotenia.</li>
+      <li><b>Výber</b>Určí sa úspešný uchádzač.</li>
+      <li><b>Zmluva</b>Uzavrie sa a zverejní v Centrálnom registri zmlúv.</li>
+      <li><b>Plnenie</b>Plnenie, prebratie a finančná kontrola.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 15 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Aktivita</div>
+    <h2>Naša škola nakupuje</h2>
+    <p class="lead" style="margin-bottom:16px">V skupinách. Škola má <mark>100 000 € bez DPH</mark> na modernizáciu počítačových učební.</p>
+    <ol class="quiz">
+      <li>Čo presne treba nakúpiť a v akom rozsahu?</li>
+      <li>Ako ste určili PHZ bez DPH a prečo nesmiete nákup rozdeliť na menšie časti?</li>
+      <li>Aké technické vlastnosti a požiadavky na dodávateľa?</li>
+      <li>Aké kritériá MEAT?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 16 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Postup, súťaž a kontrola</div>
+    <h2>Základné druhy postupov</h2>
+    <div class="cols-2">
+      <div class="card left-bar"><h3>Verejná súťaž</h3><p>Otvorený postup pre každého. Kto spĺňa podmienky, môže predložiť ponuku. Najčastejší a najtransparentnejší.</p></div>
+      <div class="card left-bar"><h3>Užšia súťaž</h3><p>Dve kolá. V 1. kole sa overujú podmienky účasti záujemcov, v 2. kole predkladajú ponuky len tí, ktorí uspeli.</p></div>
+      <div class="card left-bar"><h3>Priame rokovacie konanie</h3><p>Výnimka: obstarávateľ rokuje priamo s jedným vybraným dodávateľom bez otvorenej súťaže.</p></div>
+      <div class="card left-bar"><h3>Elektronický kontraktačný systém (EKS)</h3><p>Rýchly nákup bežne dostupných tovarov a služieb: kancelársky papier, štandardné počítače, čistiace prostriedky.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 17 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Postupy</div>
+    <h2>Kedy je povolené priame rokovacie konanie</h2>
+    <ul class="plain">
+      <li><b>Havarijné stavy:</b> spadnutá strecha školy po víchrici, prasknuté potrubie</li>
+      <li><b>Autorské práva alebo monopol:</b> plniť môže len jeden dodávateľ</li>
+      <li><b>Mimoriadne udalosti</b></li>
+    </ul>
+    <div class="note"><b>Pozor:</b> podmienky sú prísne obmedzené. Ak sa zneužijú, ide o porušenie zákona.</div>
+  </div>
+</section>
+
+<!-- 18 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Súťažné podklady a podmienky účasti</div>
+    <h2>Sito pre firmy</h2>
+    <p class="txt" style="margin-bottom:14px"><b>Súťažné podklady</b> sú detailná dokumentácia: výkaz výmer, technické normy, projektová dokumentácia, zmluvné podmienky a kritériá.</p>
+    <div class="cols-3">
+      <div class="card left-bar"><h3>Osobné postavenie</h3><p>Bez nedoplatkov na daniach, sociálnom a zdravotnom poistení. Nie v konkurze, bez zápisu v registri trestov.</p></div>
+      <div class="card left-bar"><h3>Finančné a ekonomické postavenie</h3><p>Napr. minimálny ročný obrat za posledné 3 roky.</p></div>
+      <div class="card left-bar"><h3>Technická a odborná spôsobilosť</h3><p>Referencie (zoznam stavieb), certifikáty ISO, odborne spôsobilé osoby, napr. stavbyvedúci s autorizáciou.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 19 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Registre a transparentnosť</div>
+    <h2>RPVS a CRZ</h2>
+    <div class="cols-2">
+      <div class="card left-bar">
+        <h3>Register partnerov verejného sektora (RPVS)</h3>
+        <p>Firma, ktorá chce prijímať verejné peniaze nad zákonný limit, musí byť zapísaná a odkryť konečných užívateľov výhod (reálnych majiteľov). Bráni schránkovým firmám a korupcii.</p>
+      </div>
+      <div class="card left-bar">
+        <h3>Centrálny register zmlúv (CRZ)</h3>
+        <p>Každá zmluva štátneho orgánu, obce či školy sa povinne zverejňuje na internete.</p>
+      </div>
+    </div>
+    <div class="note"><b>Pravidlo:</b> zmluva nadobúda účinnosť až dňom nasledujúcim po dni zverejnenia v CRZ. Ak nie je zverejnená, neplatí.</div>
+  </div>
+</section>
+
+<!-- 20 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Konflikt záujmov</div>
+    <h2>Keď má rozhodovateľ záujem na výhre</h2>
+    <p class="lead">Vzniká, ak osoba na strane obstarávateľa (člen komisie, riaditeľ, projektant), ktorá súťaž pripravuje alebo hodnotí, má priamy či nepriamy osobný, finančný alebo majetkový záujem na výhre určitého uchádzača.</p>
+    <div class="cols-2" style="margin-top:clamp(14px,3vh,28px)">
+      <div class="card left-bar"><h3>Prevencia</h3><p>Člen komisie podpisuje čestné vyhlásenie o nestrannosti.</p></div>
+      <div class="card bad"><h3>Ak konflikt zistí</h3><p>Napr. uchádzačom je rodinný príslušník alebo bývalý obchodný partner. Musí okamžite odstúpiť z komisie.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 21 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Kontrola a ochrana uchádzačov</div>
+    <h2>ÚVO, námietky a kaucia</h2>
+    <div class="cols-3">
+      <div class="card left-bar"><h3>ÚVO</h3><p>Úrad pre verejné obstarávanie: ústredný orgán štátnej správy. Dozerá na dodržiavanie zákona, kontroluje, vydáva metodické usmernenia a pokutuje porušenia.</p></div>
+      <div class="card left-bar"><h3>Námietky</h3><p>Ak uchádzač považuje podmienky za diskriminačné alebo vyhodnotenie za nespravodlivé, môže podať námietky.</p></div>
+      <div class="card left-bar"><h3>Kaucia</h3><p>Poistka proti šikanóznemu blokovaniu súťaží. Ak dostane uchádzač za pravdu, vráti sa mu. Pri neoprávnenej námietke prepadne štátu.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 22 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Hlavná praktická úloha</div>
+    <h2>Obstarávame novú školu</h2>
+    <p class="txt" style="max-width:66ch;margin-bottom:12px">Mesto má rozpočet <mark>500 000 € bez DPH</mark> na kompletnú rekonštrukciu strednej školy: sociálne zariadenia, počítačové učebne, osvetlenie a zateplenie strechy. Vypracujte projektovú stratégiu obstarávania.</p>
+    <ol class="quiz" style="gap:clamp(6px,1.4vh,12px)">
+      <li style="font-size:clamp(.92rem,2vh + .3vw,1.15rem)">Predmet zákazky: stavebné práce, tovary, inžinierske a projektové služby</li>
+      <li style="font-size:clamp(.92rem,2vh + .3vw,1.15rem)">Prečo zákazku nerozdeliť</li>
+      <li style="font-size:clamp(.92rem,2vh + .3vw,1.15rem)">Výpočet PHZ bez DPH a vysvetlenie porovnávania ponúk bez DPH</li>
+      <li style="font-size:clamp(.92rem,2vh + .3vw,1.15rem)">Podmienky účasti: referencie, stavbyvedúci, obrat</li>
+      <li style="font-size:clamp(.92rem,2vh + .3vw,1.15rem)">Kritériá MEAT</li>
+      <li style="font-size:clamp(.92rem,2vh + .3vw,1.15rem)">Opatrenia proti konfliktu záujmov a kontrola zápisu firiem v RPVS</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 25 -->
+<section class="slide">
+  <div class="inner">
+    <div class="tag">Ťahák</div>
+    <h2 class="wide">Verejné obstarávanie (zákon č. 343/2015 Z. z.)</h2>
+    <dl class="cheat">
+      <div><dt>Kto?</dt><dd>Verejný obstarávateľ (štát, obec, škola) a uchádzač (firma)</dd></div>
+      <div><dt>Čo?</dt><dd>Tovary, služby, stavebné práce</dd></div>
+      <div><dt>Ceny a PHZ</dt><dd>Vždy bez DPH, kvôli férovému porovnaniu platcov a neplatcov DPH</dd></div>
+      <div><dt>Zákaz</dt><dd>Umelé rozdeľovanie zákaziek (vecná, časová, miestna súvislosť)</dd></div>
+      <div><dt>Hodnotenie</dt><dd>MEAT: cena, kvalita, záruka, zelené kritériá (GPP)</dd></div>
+      <div><dt>Transparentnosť</dt><dd>RPVS (vlastníci firiem) a CRZ (povinné zverejňovanie zmlúv)</dd></div>
+      <div><dt>Kontrola</dt><dd>ÚVO (pokuty), námietky s kauciou</dd></div>
+    </dl>
+  </div>
+</section>
+
+</div>
+
+<nav class="bar-nav" aria-label="Navigácia v prezentácii">
+  <button class="nb" id="prev" aria-label="Predchádzajúci snímok">&larr;</button>
+  <div class="progress" aria-hidden="true"><span id="prog"></span></div>
+  <div class="count" id="count">1 / 1</div>
+  <button class="nb" id="next" aria-label="Nasledujúci snímok">&rarr;</button>
+  <button class="nb" id="fs" aria-label="Celá obrazovka" title="Celá obrazovka (F)">&#x26F6;</button>
+</nav>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var n=slides.length, i=0;
+  var prog=document.getElementById('prog'), count=document.getElementById('count');
+  var prev=document.getElementById('prev'), next=document.getElementById('next');
+
+  try{ var h=parseInt((location.hash||'').replace('#',''),10); if(h>=1&&h<=n) i=h-1; }catch(e){}
+
+  function show(k){
+    i=Math.max(0,Math.min(n-1,k));
+    slides.forEach(function(s,j){
+      s.classList.toggle('active',j===i);
+      s.setAttribute('aria-hidden',j===i?'false':'true');
+    });
+    slides[i].scrollTop=0;
+    prog.style.width=((i+1)/n*100)+'%';
+    count.textContent=(i+1)+' / '+n;
+    prev.disabled=i===0; next.disabled=i===n-1;
+    try{ history.replaceState(null,'','#'+(i+1)); }catch(e){}
+  }
+  prev.onclick=function(){show(i-1)};
+  next.onclick=function(){show(i+1)};
+  document.getElementById('fs').onclick=function(){
+    try{
+      if(document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen();
+    }catch(e){}
+  };
+  document.addEventListener('keydown',function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var k=e.key;
+    if(k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'&&e.target===document.body){e.preventDefault();show(i+1)}
+    else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();show(i-1)}
+    else if(k==='Home'){show(0)}
+    else if(k==='End'){show(n-1)}
+    else if(k==='f'||k==='F'){document.getElementById('fs').click()}
+  });
+  var x0=null,y0=null;
+  document.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(x0===null) return;
+    var dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){ show(dx<0?i+1:i-1); }
+    x0=null;
+  },{passive:true});
+  show(i);
+})();
+</script>
+</body>
+</html>
